@@ -59,7 +59,7 @@ endfun
 
 fun chat#indentexpr()
     " TODO: Get rid of this hack somehow
-    if g:IsMkdCode(v:lnum)
+    if s:IsMkdCode(v:lnum)
         return 0
     else
         return GetMarkdownIndent()
@@ -116,7 +116,7 @@ endfun
 
 fun chat#dumptext()
     " TODO: Get rid of this hack somehow
-    if g:IsMkdCode(line('.'))
+    if s:IsMkdCode(line('.'))
         setlocal formatoptions-=t
     else
         setlocal formatoptions+=t
@@ -142,3 +142,15 @@ fun chat#error(job, msg)
     echom "[Chat Error]" a:msg
     echohl None
 endfun
+
+" TODO: Get rid of this hack somehow
+function! s:IsMkdCode(lnum)
+    for synid in synstack(a:lnum, 1)
+        let name = synIDattr(synid, 'name')
+        if name =~# '^mkd\%(Code$\|Snippet\)' || name !=# '' && name !~? '^\%(mkd\|html\)'
+            return 1
+        endif
+    endfor
+
+    return 0
+endfunction
