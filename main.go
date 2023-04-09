@@ -17,6 +17,7 @@ import (
 
 func main() {
 	conf := openai.DefaultConfig(os.Getenv("OPENAI_API_KEY"))
+	conf.HTTPClient.Timeout = 5*time.Second
 
 	if baseURL := os.Getenv("OPENAI_BASE_URL"); baseURL != "" {
 		conf.BaseURL = baseURL
