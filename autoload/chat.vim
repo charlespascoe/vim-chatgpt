@@ -22,15 +22,15 @@ fun chat#new()
     noswapfile hide enew
     setlocal buftype=nofile
     setlocal bufhidden=hide
-    setlocal filetype=markdown
+    setlocal filetype=chatgpt.markdown
     setlocal nospell
     " Don't automatically insert the comments leader when pressing enter (r)
     " setlocal formatoptions-=r
     setlocal formatoptions=tc
     setlocal comments=b:>
     " Clear all indent keys to prevent them from triggering a re-indentation at
-    " unexpected times, particularly in code
-    setlocal indentkeys=
+    " unexpected times, particularly in code, with the exception of Enter
+    setlocal indentkeys=o
     setlocal indentexpr=chat#indentexpr()
     setlocal winfixwidth
 
