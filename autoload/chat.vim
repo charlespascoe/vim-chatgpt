@@ -17,7 +17,7 @@ endfun
 
 au WinClosed * call <SID>OnClose(win_getid())
 
-fun chat#new()
+fun chat#new(model='')
     88vsplit
     noswapfile hide enew
     setlocal buftype=nofile
@@ -38,7 +38,7 @@ fun chat#new()
 
     let outbuf = bufnr()
     let outwin = win_getid()
-    let chat_job = chat#start(outbuf)
+    let chat_job = chat#start(outbuf, a:model)
 
     let w:outwin = outwin
     let w:chat_job = chat_job
@@ -66,8 +66,16 @@ fun chat#indentexpr()
     endif
 endfun
 
-fun chat#start(outbuf)
-    return job_start([g:vim_chatgpt_binary], #{
+fun chat#start(outbuf, model='')
+    let model = a:model
+
+    if model == '' && exists('g:vim_chatgpt_model')
+        let model = g:vim_chatgpt_model
+    endif
+
+    let args = model != '' ? ['--model', model] : []
+
+    return job_start([g:vim_chatgpt_binary] + args, #{
     \  mode: 'raw',
     \  in_io: 'pipe',
     \  out_io: 'pipe',

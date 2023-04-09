@@ -5,9 +5,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"flag"
 	"fmt"
 	"io"
 	"os"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -16,6 +18,11 @@ import (
 )
 
 func main() {
+	model := flag.String("model", openai.GPT3Dot5Turbo, "Select the model to use. See --list-models to see options.")
+	listModels := flag.Bool("list-models", false, "Fetch and list all models to use.")
+
+	flag.Parse()
+
 	conf := openai.DefaultConfig(os.Getenv("OPENAI_API_KEY"))
 
 	if baseURL := os.Getenv("OPENAI_BASE_URL"); baseURL != "" {
@@ -25,7 +32,17 @@ func main() {
 	c := openai.NewClientWithConfig(conf)
 	ctx := context.Background()
 
-	chat := NewChat(c, ctx, "You are a helpful assistant. Provide answers using correct Markdown syntax.")
+	if *listModels {
+		printModels(ctx, c)
+		return
+	}
+
+	chat := NewChat(
+		ctx,
+		c,
+		*model,
+		"You are a helpful assistant. Provide answers using correct Markdown syntax.",
+	)
 
 	go func() {
 		for err := range chat.Err {
@@ -34,6 +51,8 @@ func main() {
 	}()
 
 	scanner := bufio.NewScanner(os.Stdin)
+
+	fmt.Printf("# Chat using %s\n\n", *model)
 
 	for scanner.Scan() {
 		var msg Message
@@ -50,6 +69,23 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Scanner error: %s\n", err)
 		os.Exit(2)
 	}
+}
+
+func printModels(ctx context.Context, client *openai.Client) {
+	models, err := client.ListModels(ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	var list []string
+
+	for _, model := range models.Models {
+		list = append(list, model.ID)
+	}
+
+	sort.Strings(list)
+
+	fmt.Println(strings.Join(list, "\n"))
 }
 
 type Message struct {
@@ -70,9 +106,9 @@ type Chat struct {
 	output    io.StringWriter
 }
 
-func NewChat(client *openai.Client, ctx context.Context, systemPrompt string) *Chat {
+func NewChat(ctx context.Context, client *openai.Client, model, systemPrompt string) *Chat {
 	chat := &Chat{
-		model: openai.GPT3Dot5Turbo,
+		model: model,
 		messages: []openai.ChatCompletionMessage{
 			{
 				Role:    openai.ChatMessageRoleSystem,
