@@ -19,6 +19,7 @@ import (
 
 func main() {
 	model := flag.String("model", openai.GPT3Dot5Turbo, "Select the model to use. See --list-models to see options.")
+	wrap := flag.Int("wrap", 0, "Maximum number of columns")
 	listModels := flag.Bool("list-models", false, "Fetch and list all models to use.")
 
 	flag.Parse()
@@ -37,9 +38,16 @@ func main() {
 		return
 	}
 
+	var output io.StringWriter = os.Stdout
+
+	if *wrap > 0 {
+		output = NewMarkdownWriter(os.Stdout, *wrap)
+	}
+
 	chat := NewChat(
 		ctx,
 		c,
+		output,
 		*model,
 		"You are a helpful assistant. Provide answers using correct Markdown syntax.",
 	)
@@ -106,7 +114,7 @@ type Chat struct {
 	output    io.StringWriter
 }
 
-func NewChat(ctx context.Context, client *openai.Client, model, systemPrompt string) *Chat {
+func NewChat(ctx context.Context, client *openai.Client, output io.StringWriter, model, systemPrompt string) *Chat {
 	chat := &Chat{
 		model: model,
 		messages: []openai.ChatCompletionMessage{
@@ -119,8 +127,8 @@ func NewChat(ctx context.Context, client *openai.Client, model, systemPrompt str
 		userMsgs: make(chan Message, 1),
 		Err:      make(chan error, 5),
 		client:   client,
-		timeout:  30 * time.Second,
-		output:   os.Stdout,
+		timeout:  time.Minute,
+		output:   output,
 	}
 
 	return chat
@@ -157,8 +165,10 @@ func (chat *Chat) loop() {
 					Role:    openai.ChatMessageRoleAssistant,
 					Content: respMsg,
 				})
+
 				respMsg = ""
-				chat.output.WriteString("\n\n")
+				// TODO: Handle new lines when aborting a previous response
+				// chat.output.WriteString("\n\n")
 			}
 
 			chat.messages = append(chat.messages, openai.ChatCompletionMessage{
@@ -167,7 +177,7 @@ func (chat *Chat) loop() {
 			})
 
 			writeQuoted(chat.output, msg.Text)
-			chat.output.WriteString("\n")
+			chat.output.WriteString("\n\n")
 
 			var ctx context.Context
 			ctx, cancel = context.WithTimeout(chat.ctx, chat.timeout)
@@ -226,11 +236,13 @@ func (chat *Chat) getResponse(ctx context.Context, recv chan string) {
 }
 
 func writeQuoted(writer io.StringWriter, str string) {
-	for _, line := range strings.Split(str, "\n") {
-		if len(line) > 0 {
-			writer.WriteString("> " + line + "\n")
-		} else {
-			writer.WriteString(">\n")
-		}
+	writer.WriteString("> ")
+
+	var output io.StringWriter = NewReplaceWriter(writer, "\n", "\n> ")
+
+	if mdw, ok := writer.(*MarkdownWriter); ok {
+		output = NewMarkdownWriter(output, mdw.MaxLen() - 2)
 	}
+
+	output.WriteString(strings.TrimSpace(str))
 }
