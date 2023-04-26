@@ -18,7 +18,11 @@ import (
 )
 
 func main() {
-	model := flag.String("model", openai.GPT3Dot5Turbo, "Select the model to use. See --list-models to see options.")
+	model := flag.String(
+		"model",
+		openai.GPT3Dot5Turbo,
+		"Select the model to use. See --list-models to see options.",
+	)
 	wrap := flag.Int("wrap", 0, "Maximum number of columns")
 	listModels := flag.Bool("list-models", false, "Fetch and list all models to use.")
 
@@ -240,7 +244,7 @@ func writeQuoted(writer io.StringWriter, str string) {
 	var output io.StringWriter = NewReplaceWriter(writer, "\n", "\n> ")
 
 	if mdw, ok := writer.(*MarkdownWriter); ok {
-		output = NewMarkdownWriter(output, mdw.MaxLen() - 2)
+		output = NewMarkdownWriter(output, mdw.MaxLen()-2)
 	}
 
 	output.WriteString(strings.TrimSpace(str))
