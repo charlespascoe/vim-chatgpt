@@ -50,7 +50,7 @@ fun chat#new(model='')
     setlocal buftype=nofile
     setlocal bufhidden=wipe
     setlocal nobuflisted
-    setlocal filetype=markdown
+    setlocal filetype=chatgpt.markdown
     setlocal winfixheight
 
     exec "silent" "file" chat#bufname("Input")
