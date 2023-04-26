@@ -54,7 +54,7 @@ func (mdw *MarkdownWriter) WriteString(str string) (int, error) {
 			// '```', but maybe that's OK?)
 			//
 			// A very crude implementation to avoid clobbering code
-			if mdw.inputLine.Len() == 0 && strings.HasPrefix(mdw.inputLine.String(), "```") {
+			if strings.HasPrefix(mdw.inputLine.String(), "```") {
 				mdw.wrap = !mdw.wrap
 			}
 
