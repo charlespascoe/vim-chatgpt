@@ -27,10 +27,19 @@ fun chat#new(model='')
     setlocal nospell
     setlocal winfixwidth
 
+    if &equalalways && get(g:, 'vim_chatgpt_autoresize', 1)
+        " Cause other windows to resize
+        set noequalalways
+        let prev_ead = &eadirection
+        set eadirection=hor
+        set equalalways
+        let &eadirection=prev_ead
+    endif
+
     exec "silent" "file" chat#bufname("Chat")
 
     let outwin = win_getid()
-    let chat_job = chat#start( bufnr(), a:model)
+    let chat_job = chat#start(bufnr(), a:model)
 
     let w:chat_output = 1
     let w:outwin = outwin
