@@ -203,8 +203,7 @@ func (chat *Chat) getResponse(ctx context.Context, recv chan string) {
 	defer close(recv)
 
 	req := openai.ChatCompletionRequest{
-		Model: openai.GPT3Dot5Turbo,
-		// MaxTokens: 20,
+		Model:    chat.model,
 		Messages: chat.messages,
 		Stream:   true,
 	}
