@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	bulletRegexp   = regexp.MustCompile(`^\s*[-*] `)
+	bulletRegexp   = regexp.MustCompile(`^\s*([-*]|\d+\.) `)
 	quoteRegexp    = regexp.MustCompile(`^> `)
 	wordlikeRegexp = regexp.MustCompile(`^\s*\S*`)
 )
