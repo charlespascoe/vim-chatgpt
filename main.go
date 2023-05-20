@@ -132,7 +132,7 @@ func NewChat(ctx context.Context, client *openai.Client, output io.StringWriter,
 		userMsgs: make(chan Message, 1),
 		Err:      make(chan error, 5),
 		client:   client,
-		timeout:  time.Minute,
+		timeout:  2*time.Minute,
 		output:   output,
 	}
 
