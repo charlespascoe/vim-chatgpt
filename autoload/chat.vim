@@ -67,7 +67,15 @@ fun chat#start(outbuf, model='')
         let model = g:vim_chatgpt_model
     endif
 
-    let args = model != '' ? ['--model', model] : []
+    let args = []
+
+    if model != ''
+        let args += ['--model', model]
+    endif
+
+    if exists('g:vim_chatgpt_system_prompt')
+        let args += ['--system-prompt', g:vim_chatgpt_system_prompt]
+    endif
 
     return job_start([g:vim_chatgpt_binary, '--wrap', '80'] + args, #{
     \  mode: 'raw',

@@ -25,6 +25,7 @@ func main() {
 	)
 	wrap := flag.Int("wrap", 0, "Maximum number of columns")
 	listModels := flag.Bool("list-models", false, "Fetch and list all models to use.")
+	systemPrompt := flag.String("system-prompt", "You are a helpful assistant. Provide answers using correct Markdown syntax.", "The initial hidden system prompt to start the chat.")
 
 	flag.Parse()
 
@@ -53,7 +54,7 @@ func main() {
 		c,
 		output,
 		*model,
-		"You are a helpful assistant. Provide answers using correct Markdown syntax.",
+		*systemPrompt,
 	)
 
 	go func() {
