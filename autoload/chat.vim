@@ -55,6 +55,8 @@ fun chat#new(model='')
 
     exec "silent" "file" chat#bufname("Input")
 
+    py3 import mdjoin
+
     nmap <buffer> <CR> <Cmd>call chat#sendbuf()<CR>
     let w:outwin = outwin
     let w:chat_job = chat_job

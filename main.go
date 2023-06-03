@@ -26,6 +26,7 @@ func main() {
 	wrap := flag.Int("wrap", 0, "Maximum number of columns")
 	listModels := flag.Bool("list-models", false, "Fetch and list all models to use.")
 	systemPrompt := flag.String("system-prompt", "You are a helpful assistant. Provide answers using correct Markdown syntax.", "The initial hidden system prompt to start the chat.")
+	showPrompt := flag.Bool("show-prompt", false, "Show the system prompt in the output.")
 
 	flag.Parse()
 
@@ -65,7 +66,12 @@ func main() {
 
 	scanner := bufio.NewScanner(os.Stdin)
 
-	fmt.Printf("# Chat using %s\n\n", *model)
+	output.WriteString(fmt.Sprintf("# Chat using %s\n\n", *model))
+
+	if *showPrompt {
+		writeQuoted(output, "System Prompt: " + *systemPrompt)
+		output.WriteString("\n\n")
+	}
 
 	for scanner.Scan() {
 		var msg Message
