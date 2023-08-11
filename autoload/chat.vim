@@ -79,6 +79,10 @@ fun chat#start(outbuf, model='')
         let args += ['--system-prompt', g:vim_chatgpt_system_prompt]
     endif
 
+    if exists('g:vim_chatgpt_args')
+        let args += g:vim_chatgpt_args
+    endif
+
     return job_start([g:vim_chatgpt_binary, '--wrap', '80'] + args, #{
     \  mode: 'raw',
     \  in_io: 'pipe',
