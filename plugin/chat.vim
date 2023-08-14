@@ -3,4 +3,4 @@ if !exists('g:vim_chatgpt_binary')
 endif
 
 command! Chat call chat#new()
-command! Chat4 call chat#new('gpt-4')
+command! -range Generate call chat#edit#new(<range>, <line1>, <line2>)

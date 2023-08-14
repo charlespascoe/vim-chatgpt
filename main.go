@@ -17,6 +17,8 @@ import (
 	openai "github.com/sashabaranov/go-openai"
 )
 
+const scanBufSize = 1024 * 1024
+
 func main() {
 	model := flag.String(
 		"model",
@@ -27,6 +29,7 @@ func main() {
 	listModels := flag.Bool("list-models", false, "Fetch and list all models to use.")
 	systemPrompt := flag.String("system-prompt", "You are a helpful assistant. Provide answers using correct Markdown syntax.", "The initial hidden system prompt to start the chat.")
 	showPrompt := flag.Bool("show-prompt", false, "Show the system prompt in the output.")
+	edit := flag.String("edit", "", "Perform this edit operation on the text provided by stdin.")
 
 	flag.Parse()
 
@@ -41,6 +44,23 @@ func main() {
 
 	if *listModels {
 		printModels(ctx, c)
+		return
+	}
+
+	if *edit != "" {
+		input, err := io.ReadAll(os.Stdin)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Read stdin error: %s\n", err)
+			os.Exit(2)
+		}
+
+		output, err := ApplyEdit(ctx, c, *model, string(input), *edit)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Edit error: %s\n", err)
+			os.Exit(2)
+		}
+
+		os.Stdout.WriteString(output)
 		return
 	}
 
@@ -65,6 +85,7 @@ func main() {
 	}()
 
 	scanner := bufio.NewScanner(os.Stdin)
+	scanner.Buffer(make([]byte, scanBufSize), scanBufSize)
 
 	output.WriteString(fmt.Sprintf("# Chat using %s\n\n", *model))
 
@@ -118,7 +139,6 @@ type Chat struct {
 	messages  []openai.ChatCompletionMessage
 	ctx       context.Context
 	client    *openai.Client
-	strm      *openai.ChatCompletionStream
 	userMsgs  chan Message
 	startOnce sync.Once
 	timeout   time.Duration

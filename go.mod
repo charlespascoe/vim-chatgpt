@@ -1,4 +1,4 @@
-module vim-chatgpt
+module github.com/charlespascoe/vim-chatgpt
 
 go 1.19
 
