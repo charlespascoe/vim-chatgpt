@@ -54,13 +54,11 @@ func main() {
 			os.Exit(2)
 		}
 
-		output, err := ApplyEdit(ctx, c, *model, string(input), *edit)
+		err = ApplyEdit(ctx, c, *model, string(input), *edit, os.Stdout)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Edit error: %s\n", err)
 			os.Exit(2)
 		}
-
-		os.Stdout.WriteString(output)
 		return
 	}
 

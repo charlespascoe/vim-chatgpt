@@ -2,7 +2,8 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"errors"
+	"io"
 	"strings"
 
 	openai "github.com/sashabaranov/go-openai"
@@ -16,7 +17,7 @@ const generatePrompt = `You are tasked with generating text and code. The
 message will be the instructions of what to generate. Do not reply with anything
 other than the output text.`
 
-func ApplyEdit(ctx context.Context, client *openai.Client, model, input, instruction string) (string, error) {
+func ApplyEdit(ctx context.Context, client *openai.Client, model, input, instruction string, output io.StringWriter) error {
 	req := openai.ChatCompletionRequest{Model: model}
 
 	if len(input) == 0 {
@@ -49,12 +50,21 @@ func ApplyEdit(ctx context.Context, client *openai.Client, model, input, instruc
 		)
 	}
 
-	fmt.Println("Request:", req)
-
-	resp, err := client.CreateChatCompletion(ctx, req)
+	strm, err := client.CreateChatCompletionStream(ctx, req)
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	return resp.Choices[0].Message.Content, nil
+	for {
+		resp, err := strm.Recv()
+		if errors.Is(err, io.EOF) {
+			break
+		} else if err != nil {
+			return err
+		}
+
+		output.WriteString(resp.Choices[0].Delta.Content)
+	}
+
+	return nil
 }
