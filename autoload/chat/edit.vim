@@ -61,7 +61,7 @@ fun chat#edit#run()
         let args += ['--model', model]
     endif
 
-    let job = job_start([g:vim_chatgpt_binary, '--edit', md] + args, #{
+    let job = job_start([g:vim_chatgpt_binary, 'edit', md] + args, #{
     \  mode:           'raw',
     \  in_io:          'pipe',
     \  out_io:         'pipe',

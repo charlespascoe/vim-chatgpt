@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
+	"os"
 	"strings"
 
 	openai "github.com/sashabaranov/go-openai"
@@ -16,6 +18,38 @@ code or text. Do not reply with anything other than the output text.`
 const generatePrompt = `You are tasked with generating text and code. The
 message will be the instructions of what to generate. Do not reply with anything
 other than the output text.`
+
+type EditCmd struct {
+	Model        string `kong:"placeholder='MODEL',help='The model to use. See list-models to see options.'"`
+	Instructions string `kong:"arg,required,help='The instructions to use.'"`
+}
+
+func (edit *EditCmd) Run(ctx *Context) error {
+	input, err := io.ReadAll(os.Stdin)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Read stdin error: %s\n", err)
+		os.Exit(2)
+	}
+
+	if edit.Model == "" {
+		edit.Model = openai.GPT3Dot5Turbo
+	}
+
+	err = ApplyEdit(
+		ctx,
+		ctx.Client,
+		edit.Model,
+		string(input),
+		edit.Instructions,
+		os.Stdout,
+	)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Edit error: %s\n", err)
+		os.Exit(2)
+	}
+
+	return nil
+}
 
 func ApplyEdit(ctx context.Context, client *openai.Client, model, input, instruction string, output io.StringWriter) error {
 	req := openai.ChatCompletionRequest{Model: model}

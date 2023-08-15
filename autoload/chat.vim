@@ -83,7 +83,7 @@ fun chat#start(outbuf, model='')
         let args += g:vim_chatgpt_args
     endif
 
-    return job_start([g:vim_chatgpt_binary, '--wrap', '80'] + args, #{
+    return job_start([g:vim_chatgpt_binary, 'chat', '--wrap', '80'] + args, #{
     \  mode: 'raw',
     \  in_io: 'pipe',
     \  out_io: 'pipe',
