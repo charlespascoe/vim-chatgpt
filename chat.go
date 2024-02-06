@@ -210,9 +210,8 @@ func (chat *Chat) getResponse(ctx context.Context, recv chan string) {
 
 		select {
 		case recv <- response.Choices[0].Delta.Content:
-			// Fine
-		default:
-			chat.Err <- errors.New("recv chan blocked")
+		case <-ctx.Done():
+			return
 		}
 	}
 }
