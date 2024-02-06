@@ -13,7 +13,7 @@ help:
 .PHONY: build
 ## build: Builds binary for current OS
 build:
-	go build -o $(BINARY_NAME) -v ./*.go
+	go build -o $(BINARY_NAME) -v ./cmd/vim-chatgpt
 
 .PHONY: clean
 ## clean: Clean up build artifacts
