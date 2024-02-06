@@ -2,11 +2,14 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"os"
 	"strings"
+
+	"github.com/charlespascoe/vim-chatgpt/pkg/edit"
 
 	openai "github.com/sashabaranov/go-openai"
 )
@@ -20,33 +23,52 @@ message will be the instructions of what to generate. Do not reply with anything
 other than the output text.`
 
 type EditCmd struct {
-	Model        string `kong:"placeholder='MODEL',help='The model to use. See list-models to see options.'"`
+	Model        string `kong:"short='m',placeholder='MODEL',help='The model to use. See list-models to see options.'"`
 	Instructions string `kong:"arg,required,help='The instructions to use.'"`
+	Filename     string `kong:"arg,optional,help='The filename to use.'"`
 }
 
-func (edit *EditCmd) Run(ctx *Context) error {
+func (cmd *EditCmd) Run(ctx *Context) error {
 	input, err := io.ReadAll(os.Stdin)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Read stdin error: %s\n", err)
 		os.Exit(2)
 	}
 
-	if edit.Model == "" {
-		edit.Model = openai.GPT3Dot5Turbo
+	if cmd.Model == "" {
+		cmd.Model = openai.GPT4TurboPreview
 	}
 
-	err = ApplyEdit(
-		ctx,
-		ctx.Client,
-		edit.Model,
-		string(input),
-		edit.Instructions,
-		os.Stdout,
-	)
+	fmt.Println("Using model:", cmd.Model)
+
+	sess := edit.NewSession(ctx.Client, cmd.Model, cmd.Filename)
+
+	edits, err := sess.Apply(ctx, string(input), cmd.Instructions)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Edit error: %s\n", err)
 		os.Exit(2)
 	}
+
+	data, err := json.MarshalIndent(edits, "", "  ")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "JSON error: %s\n", err)
+		os.Exit(2)
+	}
+
+	fmt.Println(string(data))
+
+	// err = ApplyEdit(
+	// 	ctx,
+	// 	ctx.Client,
+	// 	cmd.Model,
+	// 	string(input),
+	// 	cmd.Instructions,
+	// 	os.Stdout,
+	// )
+	// if err != nil {
+	// 	fmt.Fprintf(os.Stderr, "Edit error: %s\n", err)
+	// 	os.Exit(2)
+	// }
 
 	return nil
 }
