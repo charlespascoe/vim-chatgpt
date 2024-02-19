@@ -11,6 +11,9 @@ fun chat#edit#new(range, line1, line2, model='')
 
     vsplit
     enew
+    setlocal buftype=nofile
+    " TODO: Make sure this sets the correct flags etc.
+    au BufWriteCmd <buffer> ++once setlocal buftype= | exec "w" expand("<afile>")
 
     let outwin = win_getid()
     let outbuf = bufnr()
