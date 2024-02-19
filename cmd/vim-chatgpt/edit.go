@@ -20,8 +20,8 @@ message will be the instructions of what to generate. Do not reply with anything
 other than the output text.`
 
 type EditCmd struct {
-	Model        string `kong:"placeholder='MODEL',help='The model to use. See list-models to see options.'"`
-	Instructions string `kong:"arg,required,help='The instructions to use.'"`
+	Model        string `placeholder:"MODEL" help:"The model to use. See list-models to see options."`
+	Instructions string `arg:"" required:"" help:"The instructions to use."`
 }
 
 func (edit *EditCmd) Run(ctx *Context) error {

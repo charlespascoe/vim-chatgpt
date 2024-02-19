@@ -16,17 +16,18 @@ import (
 )
 
 type ChatCmd struct {
-	Model        string `kong:"help='The model to use. See list-models to see options.'"`
-	SystemPrompt string `kong:"help='The initial hidden system prompt to start the chat.'"`
-	Wrap         int    `kong:"help='Maximum number of columns of the output.'"`
-	ShowPrompt   bool   `kong:"help='Show the system prompt in the output.'"`
+	Model        string `placeholder:"MODEL" help:"The model to use. See list-models to see options."`
+	SystemPrompt string `help:"The initial hidden system prompt to start the chat."`
+	Wrap         int    `help:"Maximum number of columns of the output."`
+	TabWidth     int    `help:"Number of columns per tab. Only used when wrapping output." default:"4"`
+	ShowPrompt   bool   `help:"Show the system prompt in the output."`
 }
 
 func (c *ChatCmd) Run(ctx *Context) error {
 	var output io.StringWriter = os.Stdout
 
 	if c.Wrap > 0 {
-		output = NewMarkdownWriter(os.Stdout, c.Wrap)
+		output = NewMarkdownWriter(os.Stdout, c.Wrap, c.TabWidth)
 	}
 
 	if c.Model == "" {
@@ -222,7 +223,7 @@ func writeQuoted(writer io.StringWriter, str string) {
 	var output io.StringWriter = NewReplaceWriter(writer, "\n", "\n> ")
 
 	if mdw, ok := writer.(*MarkdownWriter); ok {
-		output = NewMarkdownWriter(output, mdw.MaxLen()-2)
+		output = NewMarkdownWriter(output, mdw.MaxLen()-2, mdw.TabWidth())
 	}
 
 	output.WriteString(strings.TrimSpace(str))
