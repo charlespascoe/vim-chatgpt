@@ -224,6 +224,7 @@ func writeQuoted(writer io.StringWriter, str string) {
 
 	if mdw, ok := writer.(*MarkdownWriter); ok {
 		output = NewMarkdownWriter(output, mdw.MaxLen()-2, mdw.TabWidth())
+		defer mdw.Flush()
 	}
 
 	output.WriteString(strings.TrimSpace(str))
